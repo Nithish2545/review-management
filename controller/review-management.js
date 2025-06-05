@@ -99,6 +99,25 @@ export const addreview = async (req, res) => {
   }
 };
 
+const getAllreviews = async (req, res) => {
+  try {
+    const snapshot = await db.collection("reviews").get();
+
+    const reviews = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    res.status(200).json(reviews);
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    res
+      .status(500)
+      .json({ message: "Error fetching reviews", error: error.message });
+  }
+};
+
 export default {
   addreview: addreview,
+  getAllreviews: getAllreviews,
 };
