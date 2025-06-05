@@ -50,10 +50,6 @@ export const addreview = async (req, res) => {
         "object.base": "Ratings must be a valid object",
         "any.required": "Ratings are required",
       }),
-    reviewCreatedAt: Joi.string().allow("").required().messages({
-      "string.base": "Review created at must be a string",
-      "any.required": "Review created at is required",
-    }),
   });
 
   const { error, value } = reviewSchema.validate(req.body, {
@@ -85,7 +81,7 @@ export const addreview = async (req, res) => {
 
     const reviewRef = await db.collection("reviews").add({
       ...value,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      reviewCreatedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
     return res.status(201).json({
