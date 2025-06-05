@@ -50,6 +50,19 @@ export const addreview = async (req, res) => {
         "object.base": "Ratings must be a valid object",
         "any.required": "Ratings are required",
       }),
+    pickUpPersonName: Joi.string().min(3).required().messages({
+      "string.empty": "Pickup person name is required",
+    }),
+    City: Joi.string().min(3).required().messages({
+      "string.empty": "City is required",
+    }),
+    incentiveStatus: Joi.string().valid("PENDING").required().messages({
+      "any.only": "Incentive status must be 'PENDING'",
+      "string.empty": "Incentive status is required",
+    }),
+    reviewSource: Joi.string().min(3).required().messages({
+      "string.empty": "Review source is required",
+    }),
   });
 
   const { error, value } = reviewSchema.validate(req.body, {
