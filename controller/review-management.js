@@ -17,19 +17,13 @@ const runTask = async (name, phoneNumber) => {
   console.log("Run task!");
 };
 
-const addreview = async (req, res) => {
+export const addreview = async (req, res) => {
   const reviewSchema = Joi.object({
     consignorname: Joi.string().min(1).required().messages({
       "string.empty": "Consignor name is required",
     }),
     reviewText: Joi.string().min(1).required().messages({
       "string.empty": "Review text is required",
-    }),
-    rating: Joi.number().integer().min(1).max(5).required().messages({
-      "number.base": "Rating must be a number",
-      "number.integer": "Rating must be an integer",
-      "number.min": "Rating must be at least 1",
-      "number.max": "Rating cannot be more than 5",
     }),
     awbHashedValue: Joi.string().min(1).required().messages({
       "string.empty": "AWB hashed value is required",
@@ -39,6 +33,26 @@ const addreview = async (req, res) => {
       "number.integer": "AWB number must be an integer",
       "number.min": "AWB number must be exactly 4 digits",
       "number.max": "AWB number must be exactly 4 digits",
+    }),
+    overallRating: Joi.number().integer().min(1).max(5).required().messages({
+      "number.base": "Overall rating must be a number",
+      "number.integer": "Overall rating must be an integer",
+      "number.min": "Overall rating must be at least 1",
+      "number.max": "Overall rating cannot be more than 5",
+    }),
+    ratings: Joi.object({
+      packing: Joi.number().integer().min(1).max(5).required(),
+      timeliness: Joi.number().integer().min(1).max(5).required(),
+      dressCode: Joi.number().integer().min(1).max(5).required(),
+    })
+      .required()
+      .messages({
+        "object.base": "Ratings must be a valid object",
+        "any.required": "Ratings are required",
+      }),
+    reviewCreatedAt: Joi.string().allow("").required().messages({
+      "string.base": "Review created at must be a string",
+      "any.required": "Review created at is required",
     }),
   });
 
