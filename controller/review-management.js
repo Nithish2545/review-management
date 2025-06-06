@@ -23,8 +23,8 @@ export const addreview = async (req, res) => {
     consignorname: Joi.string().min(1).required().messages({
       "string.empty": "Consignor name is required",
     }),
-    reviewText: Joi.string().min(1).required().messages({
-      "string.empty": "Review text is required",
+    reviewText: Joi.string().allow("").required().messages({
+      "string.base": "Review text must be a string",
     }),
     awbHashedValue: Joi.string().min(1).required().messages({
       "string.empty": "AWB hashed value is required",
