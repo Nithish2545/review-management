@@ -119,6 +119,10 @@ const getAllreviews = async (req, res) => {
       ...doc.data(),
     }));
 
+    if (reviews.empty) {
+      return res.status(404).json({ message: "No reviews found" });
+    }
+
     res.status(200).json(reviews);
   } catch (error) {
     res
@@ -127,7 +131,38 @@ const getAllreviews = async (req, res) => {
   }
 };
 
+const getPickupByAwbHashValue = async (req, res) => {
+  const { awbHash } = req.body;
+
+  if (!awbHash) {
+    return res.status(400).json({ message: "awbHash is required" });
+  }
+
+  try {
+    const snapshot = await db
+      .collection("pickup")
+      .where("awbHashedValue", "==", awbHash)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) {
+      return res.status(404).json({ message: "Shipment not found" });
+    }
+
+    const data = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    return res.status(200).json({ shipment: data[0] });
+  } catch (error) {
+    console.error("Error fetching shipment:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export default {
   addreview: addreview,
   getAllreviews: getAllreviews,
+  getPickupByAwbHashValue: getPickupByAwbHashValue,
 };
