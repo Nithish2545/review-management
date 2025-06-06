@@ -2,6 +2,7 @@ import admin from "firebase-admin";
 import Joi from "joi";
 
 import { readFile } from "fs/promises";
+import calculateIncentive from "../Utilis/incentiveCal.js";
 const serviceAccount = JSON.parse(
   await readFile(new URL("./serviceAccountKey.json", import.meta.url))
 );
@@ -77,34 +78,35 @@ export const addreview = async (req, res) => {
       })),
     });
   }
+  const incentiveInfo = calculateIncentive(value.ratings);
+  res.json({ ...value, ...incentiveInfo });
 
-  try {
-    const existingQuery = await db
-      .collection("reviews")
-      .where("awbNumber", "==", value.awbNumber)
-      .limit(1)
-      .get();
+  // try {
+  //   const existingQuery = await db
+  //     .collection("reviews")
+  //     .where("awbNumber", "==", value.awbNumber)
+  //     .limit(1)
+  //     .get();
 
-    if (!existingQuery.empty) {
-      return res.status(409).json({
-        message: "Review already exists for this shipment",
-      });
-    }
+  //   if (!existingQuery.empty) {
+  //     return res.status(409).json({
+  //       message: "Review already exists for this shipment",
+  //     });
+  //   }
 
-    const reviewRef = await db.collection("reviews").add({
-      ...value,
-      reviewCreatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
+  //   const reviewRef = await db.collection("reviews").add({
+  //     ...value,
+  //     reviewCreatedAt: admin.firestore.FieldValue.serverTimestamp(),
+  //   });
 
-    return res.status(201).json({
-      message: "Review saved successfully",
-      id: reviewRef.id,
-      data: value,
-    });
-  } catch (err) {
-    console.error("Firestore error:", err);
-    return res.status(500).json({ message: "Failed to save review" });
-  }
+  //   return res.status(201).json({
+  //     message: "Review saved successfully",
+  //     id: reviewRef.id,
+  //     data: value,
+  //   });
+  // } catch (err) {
+  //   return res.status(500).json({ message: "Failed to save review" });
+  // }
 };
 
 const getAllreviews = async (req, res) => {
@@ -118,7 +120,6 @@ const getAllreviews = async (req, res) => {
 
     res.status(200).json(reviews);
   } catch (error) {
-    console.error("Error fetching reviews:", error);
     res
       .status(500)
       .json({ message: "Error fetching reviews", error: error.message });
