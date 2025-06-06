@@ -34,16 +34,15 @@ export const addreview = async (req, res) => {
       "number.min": "AWB number must be exactly 4 digits",
       "number.max": "AWB number must be exactly 4 digits",
     }),
-    overallRating: Joi.number().integer().min(1).max(5).required().messages({
-      "number.base": "Overall rating must be a number",
-      "number.integer": "Overall rating must be an integer",
-      "number.min": "Overall rating must be at least 1",
-      "number.max": "Overall rating cannot be more than 5",
-    }),
     ratings: Joi.object({
       packing: Joi.number().integer().min(1).max(5).required(),
-      timeliness: Joi.number().integer().min(1).max(5).required(),
-      dressCode: Joi.number().integer().min(1).max(5).required(),
+      timeliness: Joi.string().valid("Yes", "No").required().messages({
+        "any.only": "Timeliness must be either 'Yes' or 'No'",
+      }),
+      dressCode: Joi.string().valid("Yes", "No").required().messages({
+        "any.only": "Dress code must be either 'Yes' or 'No'",
+      }),
+      overallRating: Joi.number().integer().min(1).max(5).required(),
     })
       .required()
       .messages({
