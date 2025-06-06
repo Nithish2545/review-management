@@ -112,18 +112,20 @@ export const addreview = async (req, res) => {
 
 const getAllreviews = async (req, res) => {
   try {
-    const snapshot = await db.collection("reviews").get();
+    const { awbHash } = req.body;
+    const existingQuery = await db
+      .collection("reviews")
+      .where("awbHashedValue", "==", awbHash)
+      .limit(1)
+      .get();
 
-    const reviews = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-
-    if (reviews.empty) {
-      return res.status(404).json({ message: "No reviews found" });
+    if (existingQuery.empty) {
+      return res.status(409).json({
+        message: "Review already exists for this shipment",
+      });
     }
-
-    res.status(200).json(reviews);
+    console.log(existingQuery.empty);
+    res.status(200).json(existingQuery.docs);
   } catch (error) {
     res
       .status(500)
