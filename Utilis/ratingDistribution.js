@@ -9,7 +9,7 @@ function ratingDistribution(ratingsArray) {
     };
 
     const ratingCounts = ratingsArray.reduce((acc, item) => {
-      const rating = item.ratings.overallRatings;
+      const rating = item.ratings.overallRating;
       acc[rating] = (acc[rating] || 0) + 1;
       return acc;
     }, {});
