@@ -1,8 +1,9 @@
 import admin from "firebase-admin";
 import Joi from "joi";
-
 import { readFile } from "fs/promises";
 import calculateIncentive from "../Utilis/incentiveCal.js";
+import ratingDistribution from "../Utilis/ratingDistribution.js";
+
 const serviceAccount = JSON.parse(
   await readFile(new URL("./serviceAccountKey.json", import.meta.url))
 );
@@ -94,7 +95,24 @@ export const addreview = async (req, res) => {
       });
     }
 
+    const snapshot = await db
+      .collection("pickup")
+      .where("awbHashedValue", "==", value.awbHashedValue)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) {
+      return res.status(404).json({ message: "Shipment not found" });
+    }
+
+    const data = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
     const reviewRef = await db.collection("reviews").add({
+      pickupBookedBy: data[0].pickupBookedBy,
+      logisticCost: data[0].logisticCost,
       ...value,
       ...incentiveInfo,
       reviewCreatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -106,6 +124,7 @@ export const addreview = async (req, res) => {
       data: value,
     });
   } catch (err) {
+    console.log(err);
     return res.status(500).json({ message: "Failed to save review" });
   }
 };
@@ -163,8 +182,36 @@ const getPickupByAwbHashValue = async (req, res) => {
   }
 };
 
+const getReviewDashboardData = async (req, res) => {
+  try {
+    const snapshot = await db.collection("reviews").get();
+
+    const data = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    let total = data.reduce((sum, item) => sum + item.ratings.overallRating, 0);
+    console.log(total / data.length);
+    let averageRatings = data.length == 0 ? 0 : parseInt(total / data.length);
+
+    let dataset = {
+      reviews: data,
+      totalReviews: data.length,
+      averageRatings: averageRatings,
+      ratingDistribution: ratingDistribution(data),
+    };
+
+    return res.status(200).json(dataset);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export default {
   addreview: addreview,
   getAllreviews: getAllreviews,
   getPickupByAwbHashValue: getPickupByAwbHashValue,
+  getReviewDashboardData: getReviewDashboardData,
 };
