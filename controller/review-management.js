@@ -116,6 +116,7 @@ export const addreview = async (req, res) => {
       ...value,
       ...incentiveInfo,
       reviewCreatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      isReviewSent: true,
     });
 
     return res.status(201).json({
@@ -135,15 +136,13 @@ const getAllreviews = async (req, res) => {
     const existingQuery = await db
       .collection("reviews")
       .where("awbHashedValue", "==", awbHash)
-      .limit(1)
       .get();
 
-    if (existingQuery.empty) {
+    if (existingQuery.empty == false) {
       return res.status(409).json({
         message: "Review already exists for this shipment",
       });
     }
-    console.log(existingQuery.empty);
     res.status(200).json(existingQuery.docs);
   } catch (error) {
     res
@@ -190,7 +189,7 @@ const getReviewDashboardData = async (req, res) => {
       id: doc.id,
       ...doc.data(),
     }));
-
+    console.log("data", data);
     let total = data.reduce((sum, item) => sum + item.ratings.overallRating, 0);
     console.log(total / data.length);
     let averageRatings = data.length == 0 ? 0 : parseInt(total / data.length);

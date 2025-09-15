@@ -5,7 +5,7 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import review from "./routes/routes.js";
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8001;
 
 app.use(
   cors({
@@ -29,7 +29,6 @@ app.use(limiter);
 app.use("/api/v1", review);
 
 app.get("/", (req, res) => {
-  console.log(new Date());
   res.send("Review management | Status: Online | Last Updated: june 04, 2025");
 });
 
