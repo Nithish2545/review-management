@@ -4,14 +4,6 @@ import calculateIncentive from "../Utilis/incentiveCal.js";
 import ratingDistribution from "../Utilis/ratingDistribution.js";
 import { db } from "../firebase.js";
 
-// Example query
-async function test() {
-  const snapshot = await db.collection("reviews").get();
-  snapshot.forEach((doc) => console.log(doc.id, "=>", doc.data()));
-}
-
-test().catch(console.error);
-
 // ======================== ADD REVIEW ========================
 export const addreview = async (req, res) => {
   const reviewSchema = Joi.object({
