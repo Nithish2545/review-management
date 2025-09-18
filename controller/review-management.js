@@ -1,24 +1,18 @@
 import admin from "firebase-admin";
 import Joi from "joi";
-import { readFile } from "fs/promises";
 import calculateIncentive from "../Utilis/incentiveCal.js";
 import ratingDistribution from "../Utilis/ratingDistribution.js";
+import { db } from "../firebase.js";
 
-const serviceAccount = JSON.parse(
-  await readFile(new URL("./serviceAccountKey.json", import.meta.url))
-);
+// Example query
+async function test() {
+  const snapshot = await db.collection("reviews").get();
+  snapshot.forEach((doc) => console.log(doc.id, "=>", doc.data()));
+}
 
-// Initialize Firebase Admin SDK
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
+test().catch(console.error);
 
-const db = admin.firestore();
-
-const runTask = async (name, phoneNumber) => {
-  console.log("Run task!");
-};
-
+// ======================== ADD REVIEW ========================
 export const addreview = async (req, res) => {
   const reviewSchema = Joi.object({
     consignorname: Joi.string().min(1).required().messages({
@@ -125,11 +119,12 @@ export const addreview = async (req, res) => {
       data: value,
     });
   } catch (err) {
-    console.log(err);
+    console.error("Error saving review:", err);
     return res.status(500).json({ message: "Failed to save review" });
   }
 };
 
+// ======================== GET ALL REVIEWS ========================
 const getAllreviews = async (req, res) => {
   try {
     const { awbHash } = req.body;
@@ -138,19 +133,22 @@ const getAllreviews = async (req, res) => {
       .where("awbHashedValue", "==", awbHash)
       .get();
 
-    if (existingQuery.empty == false) {
+    if (!existingQuery.empty) {
       return res.status(409).json({
         message: "Review already exists for this shipment",
       });
     }
-    res.status(200).json(existingQuery.docs);
+
+    return res.status(200).json(existingQuery.docs.map((doc) => doc.data()));
   } catch (error) {
-    res
+    console.error("Error fetching reviews:", error);
+    return res
       .status(500)
       .json({ message: "Error fetching reviews", error: error.message });
   }
 };
 
+// ======================== GET PICKUP BY HASH ========================
 const getPickupByAwbHashValue = async (req, res) => {
   const { awbHash } = req.body;
 
@@ -181,6 +179,7 @@ const getPickupByAwbHashValue = async (req, res) => {
   }
 };
 
+// ======================== GET DASHBOARD DATA ========================
 const getReviewDashboardData = async (req, res) => {
   try {
     const snapshot = await db.collection("reviews").get();
@@ -189,12 +188,16 @@ const getReviewDashboardData = async (req, res) => {
       id: doc.id,
       ...doc.data(),
     }));
-    console.log("data", data);
-    let total = data.reduce((sum, item) => sum + item.ratings.overallRating, 0);
-    console.log(total / data.length);
-    let averageRatings = data.length == 0 ? 0 : parseInt(total / data.length);
 
-    let dataset = {
+    const total = data.reduce(
+      (sum, item) => sum + item.ratings.overallRating,
+      0
+    );
+
+    const averageRatings =
+      data.length === 0 ? 0 : parseInt(total / data.length);
+
+    const dataset = {
       reviews: data,
       totalReviews: data.length,
       averageRatings: averageRatings,
@@ -203,14 +206,14 @@ const getReviewDashboardData = async (req, res) => {
 
     return res.status(200).json(dataset);
   } catch (error) {
-    console.log(error);
+    console.error("Error fetching dashboard data:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
 
 export default {
-  addreview: addreview,
-  getAllreviews: getAllreviews,
-  getPickupByAwbHashValue: getPickupByAwbHashValue,
-  getReviewDashboardData: getReviewDashboardData,
+  addreview,
+  getAllreviews,
+  getPickupByAwbHashValue,
+  getReviewDashboardData,
 };

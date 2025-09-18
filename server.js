@@ -29,7 +29,7 @@ app.use(limiter);
 app.use("/api/v1", review);
 
 app.get("/", (req, res) => {
-  res.send("Review management | Status: Online | Last Updated: june 04, 2025");
+  res.send("Review management | Status: Online | Last Updated: Sept 18, 2025");
 });
 
 app.listen(PORT, () => {
