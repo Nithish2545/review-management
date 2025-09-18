@@ -125,7 +125,7 @@ const getAllreviews = async (req, res) => {
       .where("awbHashedValue", "==", awbHash)
       .get();
 
-    if (!existingQuery.empty) {
+    if (existingQuery.empty == false) {
       return res.status(409).json({
         message: "Review already exists for this shipment",
       });
